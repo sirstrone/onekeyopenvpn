@@ -16,7 +16,9 @@ yum -y install epel-release
 sed -i "s/enabled=0/enabled=1/" /etc/yum.repos.d/epel.repo
 
 #安装openvpn
-yum -y install openvpn-2.4.7-1.el7 easy-rsa-3.0.3-1.el7
+yum -y install openvpn-2.4.7-1.el7 
+
+yum -y install easy-rsa
 
 #复制easy到openvpn
 cp -rf /usr/share/easy-rsa/ /etc/openvpn/easy-rsa
@@ -25,9 +27,9 @@ cp -rf /usr/share/easy-rsa/ /etc/openvpn/easy-rsa
 cp -f /usr/share/doc/openvpn-2.4.7/sample/sample-config-files/server.conf /etc/openvpn/
 
 #复制vars
-cp -f /usr/share/doc/easy-rsa-3.0.3/vars.example /etc/openvpn/easy-rsa/3.0.3/vars
+cp -f /usr/share/doc/easy-rsa-3.0.6/vars.example /etc/openvpn/easy-rsa/3.0.6/vars
 
-cd /etc/openvpn/easy-rsa/3.0.3/
+cd /etc/openvpn/easy-rsa/3.0.6/
 
 #生成ta.key
 openvpn --genkey --secret ta.key
@@ -43,15 +45,15 @@ openvpn --genkey --secret ta.key
 ./easyrsa gen-dh
 
 #管理证书位置
-cp /etc/openvpn/easy-rsa/3.0.3/pki/ca.crt /etc/openvpn/
-cp /etc/openvpn/easy-rsa/3.0.3/pki/issued/server.crt /etc/openvpn/
-cp /etc/openvpn/easy-rsa/3.0.3/pki/dh.pem /etc/openvpn/dh2048.pem
-cp /etc/openvpn/easy-rsa/3.0.3/pki/private/server.key /etc/openvpn/
-cp /etc/openvpn/easy-rsa/3.0.3/ta.key /etc/openvpn/
-cp /etc/openvpn/easy-rsa/3.0.3/pki/issued/client1.crt /etc/openvpn/client/
-cp /etc/openvpn/easy-rsa/3.0.3/ta.key /etc/openvpn/client/
-cp /etc/openvpn/easy-rsa/3.0.3/pki/ca.crt /etc/openvpn/client/
-cp /etc/openvpn/easy-rsa/3.0.3/pki/private/client1.key /etc/openvpn/client/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/ca.crt /etc/openvpn/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/issued/server.crt /etc/openvpn/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/dh.pem /etc/openvpn/dh2048.pem
+cp /etc/openvpn/easy-rsa/3.0.6/pki/private/server.key /etc/openvpn/
+cp /etc/openvpn/easy-rsa/3.0.6/ta.key /etc/openvpn/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/issued/client1.crt /etc/openvpn/client/
+cp /etc/openvpn/easy-rsa/3.0.6/ta.key /etc/openvpn/client/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/ca.crt /etc/openvpn/client/
+cp /etc/openvpn/easy-rsa/3.0.6/pki/private/client1.key /etc/openvpn/client/
 
 #关闭firewalld
 systemctl stop firewalld
@@ -103,7 +105,7 @@ curl -o udp2raw https://raw.githubusercontent.com/atrandys/onekeyopenvpn/master/
 chmod +x speederv2 udp2raw
 
 #启动udpspeeder和udp2raw
-nohup ./speederv2 -s -l0.0.0.0:9999 -r127.0.0.1:1194 -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
+nohup ./speederv2 -s -l0.0.0.0:9999 -r127.0.0.1:1194 -f2:2 --mode 0 --timeout 0 >speeder.log 2>&1 &
 nohup ./udp2raw -s -l0.0.0.0:9898 -r 127.0.0.1:9999  --raw-mode faketcp  -a -k passwd >udp2raw.log 2>&1 &
 
 #启动openvpn
@@ -116,7 +118,7 @@ cat > /etc/rc.d/init.d/openv<<-EOF
 #description:openv
 
 cd /usr/src/udp
-nohup ./speederv2 -s -l0.0.0.0:9999 -r127.0.0.1:1194 -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
+nohup ./speederv2 -s -l0.0.0.0:9999 -r127.0.0.1:1194 -f2:2 --mode 0 --timeout 0 >speeder.log 2>&1 &
 nohup ./udp2raw -s -l0.0.0.0:9898 -r 127.0.0.1:9999  --raw-mode faketcp  -a -k passwd >udp2raw.log 2>&1 &
 systemctl start openvpn@server
 EOF
@@ -130,6 +132,8 @@ echo " 介绍：适用于CentOS7"
 echo " 作者：atrandys"
 echo " 网站：www.atrandys.com"
 echo " Youtube：atrandys"
+
+echo "U.魔改"
 echo "========================="
 read -p "建议重启一下VPS，是否现在重启 ? [Y/n] :" yn
 	[ -z "${yn}" ] && yn="y"
